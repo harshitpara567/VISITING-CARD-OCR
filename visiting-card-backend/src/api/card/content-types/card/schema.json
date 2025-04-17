@@ -1,0 +1,56 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cards",
+  "info": {
+    "singularName": "card",
+    "pluralName": "cards",
+    "displayName": "card",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "companyAddress": {
+      "type": "text"
+    },
+    "CompanyName": {
+      "type": "string"
+    },
+    "CompanyWebsite": {
+      "type": "string"
+    },
+    "email": {
+      "type": "email"
+    },
+    "Designation": {
+      "type": "string"
+    },
+    "scannedCard": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "phoneNumber": {
+      "type": "biginteger"
+    },
+    "user_info": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::user-info.user-info",
+      "inversedBy": "cards"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "cards"
+    }
+  }
+}
