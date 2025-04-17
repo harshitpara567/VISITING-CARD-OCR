@@ -10,6 +10,14 @@ module.exports = {
           middlewares: []
         },
       },
+      {
+        method: 'POST',
+        path: '/custom-login',
+        handler: 'custom-card-controller.login',
+        config: {
+          auth: false,
+        },
+      },
     ],
   };
   
