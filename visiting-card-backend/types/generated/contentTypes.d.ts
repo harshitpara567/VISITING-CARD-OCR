@@ -398,19 +398,20 @@ export interface ApiAboutAbout extends Struct.SingleTypeSchema {
   };
 }
 
-export interface ApiCardCard extends Struct.CollectionTypeSchema {
-  collectionName: 'cards';
+export interface ApiExtractedCardDetailExtractedCardDetail
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'extracted_card_details';
   info: {
     description: '';
-    displayName: 'card';
-    pluralName: 'cards';
-    singularName: 'card';
+    displayName: 'extracted_card_detail';
+    pluralName: 'extracted-card-details';
+    singularName: 'extracted-card-detail';
   };
   options: {
     draftAndPublish: true;
   };
   attributes: {
-    companyAddress: Schema.Attribute.Text;
+    CompanyAddress: Schema.Attribute.String;
     CompanyName: Schema.Attribute.String;
     CompanyWebsite: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
@@ -419,22 +420,21 @@ export interface ApiCardCard extends Struct.CollectionTypeSchema {
     Designation: Schema.Attribute.String;
     email: Schema.Attribute.Email;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<'oneToMany', 'api::card.card'> &
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::extracted-card-detail.extracted-card-detail'
+    > &
       Schema.Attribute.Private;
     name: Schema.Attribute.String;
     phoneNumber: Schema.Attribute.BigInteger;
     publishedAt: Schema.Attribute.DateTime;
-    scannedCard: Schema.Attribute.Media<'images'>;
+    scannedCard: Schema.Attribute.Media<'images' | 'files'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    user: Schema.Attribute.Relation<
+    users_permissions_user: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.user'
-    >;
-    user_info: Schema.Attribute.Relation<
-      'manyToOne',
-      'api::user-info.user-info'
     >;
   };
 }
@@ -465,39 +465,6 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
     publishedAt: Schema.Attribute.DateTime;
     siteDescription: Schema.Attribute.Text & Schema.Attribute.Required;
     siteName: Schema.Attribute.String & Schema.Attribute.Required;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
-export interface ApiUserInfoUserInfo extends Struct.CollectionTypeSchema {
-  collectionName: 'user_infos';
-  info: {
-    description: '';
-    displayName: 'user_info';
-    pluralName: 'user-infos';
-    singularName: 'user-info';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    cards: Schema.Attribute.Relation<'oneToMany', 'api::card.card'>;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    email: Schema.Attribute.Email;
-    fullName: Schema.Attribute.String;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::user-info.user-info'
-    > &
-      Schema.Attribute.Private;
-    password: Schema.Attribute.String;
-    phoneNumber: Schema.Attribute.BigInteger;
-    publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -962,7 +929,6 @@ export interface PluginUsersPermissionsUser
   };
   attributes: {
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
-    cards: Schema.Attribute.Relation<'oneToMany', 'api::card.card'>;
     confirmationToken: Schema.Attribute.String & Schema.Attribute.Private;
     confirmed: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     createdAt: Schema.Attribute.DateTime;
@@ -973,6 +939,10 @@ export interface PluginUsersPermissionsUser
       Schema.Attribute.SetMinMaxLength<{
         minLength: 6;
       }>;
+    extracted_card_details: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::extracted-card-detail.extracted-card-detail'
+    >;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1015,9 +985,8 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::about.about': ApiAboutAbout;
-      'api::card.card': ApiCardCard;
+      'api::extracted-card-detail.extracted-card-detail': ApiExtractedCardDetailExtractedCardDetail;
       'api::global.global': ApiGlobalGlobal;
-      'api::user-info.user-info': ApiUserInfoUserInfo;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

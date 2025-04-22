@@ -1,10 +1,10 @@
 {
   "kind": "collectionType",
-  "collectionName": "cards",
+  "collectionName": "extracted_card_details",
   "info": {
-    "singularName": "card",
-    "pluralName": "cards",
-    "displayName": "card",
+    "singularName": "extracted-card-detail",
+    "pluralName": "extracted-card-details",
+    "displayName": "extracted_card_detail",
     "description": ""
   },
   "options": {
@@ -14,10 +14,10 @@
     "name": {
       "type": "string"
     },
-    "companyAddress": {
-      "type": "text"
-    },
     "CompanyName": {
+      "type": "string"
+    },
+    "CompanyAddress": {
       "type": "string"
     },
     "CompanyWebsite": {
@@ -26,31 +26,25 @@
     "email": {
       "type": "email"
     },
+    "phoneNumber": {
+      "type": "biginteger"
+    },
     "Designation": {
       "type": "string"
     },
     "scannedCard": {
-      "type": "media",
-      "multiple": false,
-      "required": false,
       "allowedTypes": [
-        "images"
-      ]
+        "images",
+        "files"
+      ],
+      "type": "media",
+      "multiple": false
     },
-    "phoneNumber": {
-      "type": "biginteger"
-    },
-    "user_info": {
-      "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::user-info.user-info",
-      "inversedBy": "cards"
-    },
-    "user": {
+    "users_permissions_user": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user",
-      "inversedBy": "cards"
+      "inversedBy": "extracted_card_details"
     }
   }
 }

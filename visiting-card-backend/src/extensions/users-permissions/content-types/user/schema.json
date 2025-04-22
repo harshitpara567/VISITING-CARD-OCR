@@ -69,11 +69,11 @@
       "type": "biginteger",
       "required": true
     },
-    "cards": {
+    "extracted_card_details": {
       "type": "relation",
       "relation": "oneToMany",
-      "target": "api::card.card",
-      "mappedBy": "user"
+      "target": "api::extracted-card-detail.extracted-card-detail",
+      "mappedBy": "users_permissions_user"
     }
   }
 }
