@@ -419,6 +419,7 @@ export interface ApiExtractedCardDetailExtractedCardDetail
       Schema.Attribute.Private;
     Designation: Schema.Attribute.String;
     email: Schema.Attribute.Email;
+    isFavorite: Schema.Attribute.Boolean;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -955,6 +956,7 @@ export interface PluginUsersPermissionsUser
         minLength: 6;
       }>;
     phoneNumber: Schema.Attribute.BigInteger & Schema.Attribute.Required;
+    profilePicture: Schema.Attribute.Media<'images' | 'files'>;
     provider: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     resetPasswordToken: Schema.Attribute.String & Schema.Attribute.Private;

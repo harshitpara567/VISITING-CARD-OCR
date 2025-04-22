@@ -63,7 +63,34 @@ module.exports = createCoreController('api::extracted-card-detail.extracted-card
     console.log("Login successful, sending response with token and user data");
     return ctx.send({ token, user });
   },
-
+  async markFavorite(ctx) {
+    try {
+      const { id } = ctx.params;
+  
+      const body = ctx.request.body;
+      if (!body || typeof body !== 'object') {
+        return ctx.throw(400, 'Request body is missing or invalid');
+      }
+  
+      const { isFavorite } = body.data || {}; // Optional chaining
+  
+      if (typeof isFavorite !== 'boolean') {
+        return ctx.throw(400, 'Invalid or missing isFavorite boolean value');
+      }
+  
+      const updated = await strapi.entityService.update('api::extracted-card-detail.extracted-card-detail', id, {
+        data: { isFavorite },
+      });
+  
+      return updated;
+    } catch (error) {
+      console.error("MARK_FAVORITE_ERROR:", error);
+      return ctx.throw(500, error.message);
+    }
+  },
+  
+  
+  
   async analyzeCardAndSave(ctx) {
     try {
       const { files } = ctx.request;
@@ -86,22 +113,6 @@ module.exports = createCoreController('api::extracted-card-detail.extracted-card
       const savedEntry = await strapi.entityService.create('api::extracted-card-detail.extracted-card-detail', {
         data: parsedData,
       });
-
-        // for (const key in savedEntry) {
-        //     if (savedEntry.hasOwnProperty(key) && savedEntry[key] === null) {
-        //         if (element.includes('@') && element.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/)) {
-        //             savedEntry.email = element
-        //         } else if (element.match(/(\+?\d{1,3}[-.\s]?)?(\(?\d{3,5}\)?[-.\s]?)?\d{3,5}[-.\s]?\d{3,5}/)) {
-        //             savedEntry.phoneNumber = element.replace(/\D/g, '')
-        //         } else if (element.match(/^(Founder|Co[- ]?Founder|CEO|Chief Executive Officer|CTO|Chief Technology Officer|COO|Chief Operating Officer|CFO|Chief Financial Officer|Manager|Product Manager|Project Manager|Director|Software Engineer|Developer|Engineer|Designer|Consultant|Analyst|Intern|President|Vice President|VP|Lead|Head)\b/i)) {
-        //             savedEntry.Designation = element
-        //         } else if (element.match(/((https?:\/\/)?(www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,})(\/[^\s]*)?/gi)) {
-        //             savedEntry.CompanyWebsite = element
-        //         }else if (element.match(/\b([A-Z][a-zA-Z&,\.\- ]+(Inc|LLC|Ltd|Corporation|Company|Corp|Solutions|Technologies|Systems|Group|Studio|Associates|Agency|Services))\b/)) {
-        //             savedEntry.CompanyName = element
-        //         }
-        //     }
-        //   }
       return savedEntry;
     } catch (err) {
       console.error("ANALYZE_CARD_ERROR:", err);

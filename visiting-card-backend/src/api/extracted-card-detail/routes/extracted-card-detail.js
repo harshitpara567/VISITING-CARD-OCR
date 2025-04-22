@@ -20,5 +20,6 @@ module.exports = {
         middlewares: [],
       },
     },
+   
   ],
 };

@@ -74,6 +74,14 @@
       "relation": "oneToMany",
       "target": "api::extracted-card-detail.extracted-card-detail",
       "mappedBy": "users_permissions_user"
+    },
+    "profilePicture": {
+      "allowedTypes": [
+        "images",
+        "files"
+      ],
+      "type": "media",
+      "multiple": false
     }
   }
 }

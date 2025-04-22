@@ -28,5 +28,15 @@ module.exports = {
           middlewares: [],
         },
       },
+      {
+        method: 'PUT',
+        path: '/scannedcards/:id/favorite',
+        handler: 'custom-extracted-card-detail.markFavorite',
+        config: {
+          policies: [],
+          middlewares: [],
+        },
+      }
+      
   ],
 };
