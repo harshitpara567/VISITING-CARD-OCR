@@ -69,19 +69,14 @@
       "type": "biginteger",
       "required": true
     },
-    "extracted_card_details": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::extracted-card-detail.extracted-card-detail",
-      "mappedBy": "users_permissions_user"
-    },
     "profilePicture": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
       "allowedTypes": [
         "images",
         "files"
-      ],
-      "type": "media",
-      "multiple": false
+      ]
     }
   }
 }

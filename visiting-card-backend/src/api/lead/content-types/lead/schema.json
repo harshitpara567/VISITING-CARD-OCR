@@ -1,10 +1,10 @@
 {
   "kind": "collectionType",
-  "collectionName": "extracted_card_details",
+  "collectionName": "leads",
   "info": {
-    "singularName": "extracted-card-detail",
-    "pluralName": "extracted-card-details",
-    "displayName": "extracted_card_detail",
+    "singularName": "lead",
+    "pluralName": "leads",
+    "displayName": "Lead",
     "description": ""
   },
   "options": {
@@ -14,13 +14,7 @@
     "name": {
       "type": "string"
     },
-    "CompanyName": {
-      "type": "string"
-    },
-    "CompanyAddress": {
-      "type": "string"
-    },
-    "CompanyWebsite": {
+    "designation": {
       "type": "string"
     },
     "email": {
@@ -28,9 +22,6 @@
     },
     "phoneNumber": {
       "type": "biginteger"
-    },
-    "Designation": {
-      "type": "string"
     },
     "scannedCard": {
       "type": "media",
@@ -41,14 +32,16 @@
         "files"
       ]
     },
-    "users_permissions_user": {
+    "company": {
       "type": "relation",
       "relation": "manyToOne",
-      "target": "plugin::users-permissions.user",
-      "inversedBy": "extracted_card_details"
+      "target": "api::company.company",
+      "inversedBy": "leads"
     },
-    "isFavorite": {
-      "type": "boolean"
+    "admin_users": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "admin::user"
     }
   }
 }

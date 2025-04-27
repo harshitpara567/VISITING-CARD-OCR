@@ -1,12 +1,14 @@
-const {ComprehendClient} = require("@aws-sdk/client-comprehend")
+// src/api/utils/comprehend-client.js
 
+const { ComprehendClient } = require("@aws-sdk/client-comprehend");
+
+// Initialize the AWS Comprehend client
 const comprehend = new ComprehendClient({
-    region: process.env.AWS_REGION,
-    credentials:{
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      },
-    
-})
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
 
-module.exports = {comprehend}
+module.exports = { comprehend };
