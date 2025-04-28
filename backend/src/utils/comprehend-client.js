@@ -1,8 +1,6 @@
-// src/api/utils/comprehend-client.js
-
 const { ComprehendClient } = require("@aws-sdk/client-comprehend");
 
-// Initialize the AWS Comprehend client
+require("dotenv").config(); 
 const comprehend = new ComprehendClient({
   region: process.env.AWS_REGION,
   credentials: {

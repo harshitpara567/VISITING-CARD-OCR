@@ -1,8 +1,6 @@
-// src/api/utils/textract-client.js
-
-require('dotenv').config(); 
+require('dotenv').config();
 const { TextractClient, AnalyzeDocumentCommand } = require('@aws-sdk/client-textract');
-const { parseTextData } = require('./parse-text-data'); // Import parseTextData
+const { parseTextData } = require('./parse-text-data');
 
 const textractClient = new TextractClient({
   region: process.env.AWS_REGION,
@@ -21,18 +19,16 @@ const analyzeDocument = async (bytes) => {
   const command = new AnalyzeDocumentCommand(params);
   const response = await textractClient.send(command);
   
-  // Extracting the detected entities from the Textract response
   const textractText = response.Blocks
     .filter(block => block.BlockType === 'LINE')
     .map(block => block.Text)
     .join(' ');
 
-  // Use Comprehend to analyze the text extracted by Textract
-  const parsedData = parseTextData(response.Blocks);  // Pass the Textract response to parseTextData
+  const parsedData = parseTextData(response.Blocks);
 
   return {
     textractText,
-    parsedData,  // Return the parsed data with both Lead and Company details
+    parsedData,
   };
 };
 

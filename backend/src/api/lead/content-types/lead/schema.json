@@ -38,10 +38,11 @@
       "target": "api::company.company",
       "inversedBy": "leads"
     },
-    "admin_users": {
+    "users_permissions_user": {
       "type": "relation",
-      "relation": "oneToMany",
-      "target": "admin::user"
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "leads"
     }
   }
 }

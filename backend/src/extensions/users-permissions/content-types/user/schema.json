@@ -77,6 +77,12 @@
         "images",
         "files"
       ]
+    },
+    "leads": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::lead.lead",
+      "mappedBy": "users_permissions_user"
     }
   }
 }

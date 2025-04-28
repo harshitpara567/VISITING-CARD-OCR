@@ -4,7 +4,6 @@ const { createCoreController } = require('@strapi/strapi').factories;
 
 module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
   
-  // Create a new lead with associated company details
   async create(ctx) {
     try {
       const {
@@ -18,16 +17,14 @@ module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
         user,
       } = ctx.request.body;
 
-      // Create a new company and associate it with the lead
       const company = await strapi.entityService.create('api::company.company', {
         data: {
-          name: companyName,  // Mapped to 'name' in the company model
-          address: companyAddress,  // Mapped to 'address'
-          website: companyWebsite,  // Mapped to 'website'
+          name: companyName,
+          address: companyAddress,
+          website: companyWebsite,
         },
       });
 
-      // Create the lead and link it to the user and company
       const newLead = await strapi.entityService.create('api::lead.lead', {
         data: {
           name,
@@ -35,7 +32,7 @@ module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
           phoneNumber,
           designation,
           users_permissions_user: user,
-          company: company.id,  // Linking the created company to the lead
+          company: company.id,
         },
       });
 
@@ -46,7 +43,6 @@ module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
     }
   },
 
-  // Find one lead by ID and populate the user and company relationships
   async findOne(ctx) {
     try {
       const { scannedCardId } = ctx.params;
