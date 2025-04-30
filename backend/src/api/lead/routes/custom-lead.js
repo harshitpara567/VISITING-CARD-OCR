@@ -41,7 +41,7 @@ module.exports = {
     },
     {
       method: 'POST',
-      path: '/leads/analyze',
+      path: '/leads/analyze/:userDocumentId',
       handler: 'custom-lead.analyzeCardAndSave',
       config: {
         description: 'Upload a card image and extract text using AWS Textract & Comprehend',
@@ -107,5 +107,21 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: 'GET',
+      path: '/lead-company/:userDocumentId',
+      handler: 'custom-lead.getLeadAndCompanyByUserDocumentId',
+      config: {
+        description: 'Get lead and company by user document ID',
+        tags: ['Lead', 'Company'],
+        responses: {
+          200: { description: 'Successfully fetched lead and company data' },
+          400: { description: 'User document ID missing' },
+          404: { description: 'No lead found for this user' },
+        },
+        auth: false, 
+      },
+    },
+    
   ],
 };
