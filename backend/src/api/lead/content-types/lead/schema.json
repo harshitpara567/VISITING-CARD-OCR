@@ -38,11 +38,10 @@
       "target": "api::company.company",
       "inversedBy": "leads"
     },
-    "users_permissions_user": {
+    "created_by_admin": {
       "type": "relation",
       "relation": "manyToOne",
-      "target": "plugin::users-permissions.user",
-      "inversedBy": "leads"
+      "target": "admin::user"
     }
   }
 }
