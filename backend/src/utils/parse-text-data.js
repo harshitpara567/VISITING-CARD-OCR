@@ -1,4 +1,4 @@
-function parseTextData(entities, fullText = '') {
+function parseTextData(entities) {
   const leadData = {};
   const companyData = {};
   let unparsedData = [];

@@ -5,7 +5,7 @@ module.exports = {
     {
       method: 'GET',
       path: '/leads/user/:userId',
-      handler: 'custom-lead.findByUserId',
+      handler: 'custom-lead.findByUserId', 
       config: {
         description: 'Get all leads for a specific user by userId',
         tags: ['Leads'],
@@ -25,6 +25,7 @@ module.exports = {
         middlewares: [],
       },
     },
+
     {
       method: 'POST',
       path: '/custom-login',
@@ -39,13 +40,23 @@ module.exports = {
         auth: false,
       },
     },
+
     {
       method: 'POST',
-      path: '/leads/analyze/:userDocumentId',
+      path: '/leads/analyze/:userId', 
       handler: 'custom-lead.analyzeCardAndSave',
       config: {
         description: 'Upload a card image and extract text using AWS Textract & Comprehend',
         tags: ['Leads'],
+        parameters: [
+          {
+            name: 'userId',
+            in: 'path',
+            required: true,
+            description: 'ID of the user (users_permissions_user id)',
+            schema: { type: 'string' },
+          },
+        ],
         requestBody: {
           required: true,
           content: {
@@ -70,6 +81,7 @@ module.exports = {
         middlewares: [],
       },
     },
+
     {
       method: 'PUT',
       path: '/leads/:id/favorite',
@@ -93,6 +105,7 @@ module.exports = {
         middlewares: [],
       },
     },
+
     {
       method: 'GET',
       path: '/myleads',
@@ -107,21 +120,5 @@ module.exports = {
         middlewares: [],
       },
     },
-    {
-      method: 'GET',
-      path: '/lead-company/:userDocumentId',
-      handler: 'custom-lead.getLeadAndCompanyByUserDocumentId',
-      config: {
-        description: 'Get lead and company by user document ID',
-        tags: ['Lead', 'Company'],
-        responses: {
-          200: { description: 'Successfully fetched lead and company data' },
-          400: { description: 'User document ID missing' },
-          404: { description: 'No lead found for this user' },
-        },
-        auth: false, 
-      },
-    },
-    
   ],
 };

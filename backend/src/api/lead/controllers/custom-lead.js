@@ -21,12 +21,12 @@ module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
       // Try Users-Permissions decoding first
       const user = await strapi.plugins['users-permissions'].services.jwt.getToken(ctx);
       userId = user.id;
-    } catch (err) {
+    } catch {
       try {
         // If fails, try Admin decoding
         const { auth } = await strapi.plugins['admin'].services.token.decodeJwtToken(token);
         userId = auth.id;
-      } catch (error) {
+      } catch {
         return ctx.throw(401, 'Invalid Token');
       }
     }
@@ -46,67 +46,54 @@ module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
     return ctx.send({ data: entries });
   },
   
-  
 
   async findByUserId(ctx) {
+    const { userId } = ctx.params;
+  
+    if (!userId) {
+      return ctx.throw(400, 'User ID is required');
+    }
+  
     try {
-      const { id } = ctx.params;
-      const userId = id; 
-  
-      if (!userId) {
-        return ctx.unauthorized('User not authenticated');
-      }
-  
-      const leads = await strapi.entityService.findMany('api::lead.lead', {
-        filters: {
+      const leads = await strapi.db.query('api::lead.lead').findMany({
+        where: {
           users_permissions_user: {
-            id: userId,
+            id: userId, 
           },
         },
-        populate: ['company', 'scannedCard'], 
+        populate: ['company'], 
       });
   
-      ctx.send(leads);
-    } catch (error) {
-      console.error('Error while fetching leads:', error);
-      ctx.internalServerError('An error occurred while fetching leads');
+      return leads; 
+    } catch {
+      return ctx.throw(500, 'Error fetching leads');
     }
   },
   
 
   async login(ctx) {
     const { email, password } = ctx.request.body;
-
-    
-    if (!email || !password) {
-      return ctx.badRequest('Email and password are required');
-    }
-
-   
+  
     const user = await strapi.db.query('admin::user').findOne({ where: { email } });
-
-    
+  
     if (!user) {
-      return ctx.badRequest('Invalid credentials');
+      return ctx.unauthorized('Invalid email or password');
     }
-
-    
+  
     const isValid = await bcrypt.compare(password, user.password);
-
+  
     if (!isValid) {
-      return ctx.badRequest('Invalid credentials');
+      return ctx.unauthorized('Invalid email or password');
     }
-
-    
+  
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-    
+  
     return ctx.send({
       token,
-      user: user
-
+      user
     });
   },
+  
 
   async markFavorite(ctx) {
     const { id } = ctx.params;
@@ -124,21 +111,22 @@ module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
 
     return updated;
   },
+  
   async analyzeCardAndSave(ctx) {
     const { files } = ctx.request;
-    const userDocumentId = ctx.params.userDocumentId;
-    if (!userDocumentId) return ctx.throw(400, 'User document ID is required');
+    const userId = ctx.params.userId; 
+    if (!userId) return ctx.throw(400, 'User ID is required');
     if (!files?.scannedCard?.filepath) return ctx.throw(400, 'No scannedCard image uploaded');
-  
+
     const filePath = files.scannedCard.filepath;
     const fileBuffer = fs.readFileSync(filePath);
-  
+
     const rawText = await extractTextFromImage(fileBuffer);
     const entities = await analyzeEntities(rawText);
     const parsedData = parseTextData(entities, rawText);
-  
+
     const { companyData, leadData } = parsedData;
-  
+
     const company = await strapi.entityService.create('api::company.company', {
       data: {
         name: companyData?.name || null,
@@ -146,9 +134,13 @@ module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
         website: companyData?.website || null,
       },
     });
-  
-    const adminUserId = ctx.state.admin?.id || null;
-  
+
+    const user = await strapi.entityService.findOne('plugin::users-permissions.user', userId);
+
+    if (!user) {
+      return ctx.throw(404, 'User not found');
+    }
+
     const savedEntry = await strapi.entityService.create('api::lead.lead', {
       data: {
         name: leadData?.name || null,
@@ -156,73 +148,35 @@ module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
         phoneNumber: leadData?.phoneNumber || null,
         designation: leadData?.designation || null,
         scannedCard: leadData?.scannedCard || null,
-        created_by_admin: userDocumentId
-          ? { connect: [userDocumentId] }
-          : null,
-        company: company?.documentId 
-          ? { connect: [company.documentId ] }
-          : null,
+        users_permissions_user: user.id, 
+        company: company?.id || null, 
       },
-      populate: ['company', 'created_by_admin'],
+      populate: ['company', 'users_permissions_user'],
     });
-  
+
     return savedEntry;
   },
-  async getLeadAndCompanyByUserDocumentId(ctx) {
+
+  async getLeadsByUser(ctx) {
     const { userDocumentId } = ctx.params;
+  
     if (!userDocumentId) {
       return ctx.throw(400, 'User document ID is required');
     }
   
-    
-    // const lead = await strapi.db.query('api::lead.lead').findOne({
-    //   where: {
-    //     created_by_admin: userDocumentId,
-    //   },
-    //   populate: ['company'], 
-    // });
-  
-    const lead = await strapi.db.query('api::lead.lead').findOne({
-      where: {
-        created_by_admin: userDocumentId,
-      },
-      populate: {
-        company: true,
-        created_by_admin: {
-          fields: ['documentId'], // <-- subkey inside created_by_admin
+    try {
+      const leads = await strapi.db.query('api::lead.lead').findMany({
+        where: {
+          users_permissions_user: {
+            id: userDocumentId,  
+          },
         },
-      },
-    });
-    
-    if (!lead) {
-      return ctx.throw(404, 'No lead found for the given document ID');
+        populate: ['company'],  
+      });
+  
+      return leads;
+    } catch {
+      return ctx.throw(500, 'Error fetching leads');
     }
-  
-    
-    const company = lead.company;
-  
-    return ctx.send({
-      lead: {
-        id: lead.id,
-        name: lead.name,
-        email: lead.email,
-        phoneNumber: lead.phoneNumber,
-        designation: lead.designation,
-        scannedCard: lead.scannedCard,
-        
-      },
-      company: company ? {
-        id: company.id,
-        name: company.name,
-        address: company.address,
-        website: company.website,
-        
-      } : null,
-    });
   }
-  
-
-
-
-
 }));
