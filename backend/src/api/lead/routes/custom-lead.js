@@ -2,11 +2,10 @@
 
 module.exports = {
   routes: [
-    // Route to get all leads for a specific user by userId
     {
       method: 'GET',
       path: '/leads/user/:userId',
-      handler: 'custom-lead.findByUserId', // The controller function to fetch leads by userId
+      handler: 'custom-lead.findByUserId', 
       config: {
         description: 'Get all leads for a specific user by userId',
         tags: ['Leads'],
@@ -27,7 +26,6 @@ module.exports = {
       },
     },
 
-    // Custom login route
     {
       method: 'POST',
       path: '/custom-login',
@@ -43,10 +41,9 @@ module.exports = {
       },
     },
 
-    // Route to analyze card and save leads
     {
       method: 'POST',
-      path: '/leads/analyze/:userId', // Change from :userDocumentId to :userId
+      path: '/leads/analyze/:userId', 
       handler: 'custom-lead.analyzeCardAndSave',
       config: {
         description: 'Upload a card image and extract text using AWS Textract & Comprehend',
@@ -84,9 +81,7 @@ module.exports = {
         middlewares: [],
       },
     },
-    
 
-    // Route to mark a lead as favorite
     {
       method: 'PUT',
       path: '/leads/:id/favorite',
@@ -111,7 +106,6 @@ module.exports = {
       },
     },
 
-    // Route to get all leads for the logged-in user
     {
       method: 'GET',
       path: '/myleads',
@@ -126,22 +120,5 @@ module.exports = {
         middlewares: [],
       },
     },
-
-    // Route to get lead and company by user document ID
-    // {
-    //   method: 'GET',
-    //   path: '/lead-company/:userDocumentId',
-    //   handler: 'custom-lead.getLeadAndCompanyByUserDocumentId',
-    //   config: {
-    //     description: 'Get lead and company by user document ID',
-    //     tags: ['Lead', 'Company'],
-    //     responses: {
-    //       200: { description: 'Successfully fetched lead and company data' },
-    //       400: { description: 'User document ID missing' },
-    //       404: { description: 'No lead found for this user' },
-    //     },
-    //     auth: false, // Ensure this is correct based on your authentication
-    //   },
-    // },
   ],
 };

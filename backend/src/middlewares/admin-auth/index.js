@@ -17,7 +17,7 @@ module.exports = (config, { strapi }) => {
       if (adminUser) {
         ctx.state.admin = adminUser;
       }
-    } catch (err) {
+    } catch {
       // Token is invalid or expired, just proceed without attaching admin
     }
 
