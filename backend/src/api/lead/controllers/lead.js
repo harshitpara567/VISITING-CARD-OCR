@@ -3,7 +3,7 @@
 const { createCoreController } = require('@strapi/strapi').factories;
 
 module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
-  
+
   async create(ctx) {
     try {
       const {
@@ -22,6 +22,7 @@ module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
           name: companyName,
           address: companyAddress,
           website: companyWebsite,
+          publishedAt: new Date(),
         },
       });
 
@@ -33,6 +34,7 @@ module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
           designation,
           users_permissions_user: user,
           company: company.id,
+          publishedAt: new Date(),
         },
       });
 
@@ -58,5 +60,4 @@ module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
       return ctx.throw(500, error.message);
     }
   }
-
 }));

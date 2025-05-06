@@ -1,0 +1,32 @@
+{
+  "kind": "collectionType",
+  "collectionName": "logs",
+  "info": {
+    "singularName": "log",
+    "pluralName": "logs",
+    "displayName": "log"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "action": {
+      "type": "string"
+    },
+    "entityName": {
+      "type": "string"
+    },
+    "entityId": {
+      "type": "biginteger"
+    },
+    "users_permissions_user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "logs"
+    },
+    "additionalInfo": {
+      "type": "json"
+    }
+  }
+}
