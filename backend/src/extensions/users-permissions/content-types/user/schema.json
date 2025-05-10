@@ -91,6 +91,12 @@
       "relation": "oneToMany",
       "target": "api::lead.lead",
       "mappedBy": "users_permissions_user"
+    },
+    "logs": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::log.log",
+      "mappedBy": "users_permissions_user"
     }
   }
 }

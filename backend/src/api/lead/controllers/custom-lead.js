@@ -6,94 +6,88 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const { extractTextFromImage, analyzeEntities } = require('../services/textract-service');
 const { parseTextData } = require('../../../utils/parse-text-data');
+const { createLog } = require('../../utils/logger');
 
 module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
-  
+
   async findMyCards(ctx) {
     let userId = null;
-  
+
     const authHeader = ctx.request.header.authorization;
     if (!authHeader) return ctx.throw(401, 'Missing Authorization Header');
-  
+
     const token = authHeader.split(' ')[1];
-  
+
     try {
-      // Try Users-Permissions decoding first
       const user = await strapi.plugins['users-permissions'].services.jwt.getToken(ctx);
       userId = user.id;
     } catch {
       try {
-        // If fails, try Admin decoding
         const { auth } = await strapi.plugins['admin'].services.token.decodeJwtToken(token);
         userId = auth.id;
       } catch {
         return ctx.throw(401, 'Invalid Token');
       }
     }
-  
+
     if (!userId) return ctx.throw(401, 'Unauthorized');
-  
-    // Now fetch leads (filtered if you want)
+
     const entries = await strapi.db.query('api::lead.lead').findMany({
-      where: { created_by_admin: userId },
+      where: {
+        created_by_admin: userId,
+        publishedAt: { $notNull: true },
+      },
       populate: ['company', 'created_by_admin'],
     });
-  
+
     if (!entries?.length) {
       return ctx.throw(404, 'No records found');
     }
-  
+
     return ctx.send({ data: entries });
   },
-  
 
   async findByUserId(ctx) {
     const { userId } = ctx.params;
-  
+
     if (!userId) {
       return ctx.throw(400, 'User ID is required');
     }
-  
+
     try {
       const leads = await strapi.db.query('api::lead.lead').findMany({
         where: {
-          users_permissions_user: {
-            id: userId, 
-          },
+          users_permissions_user: { id: userId },
+          publishedAt: { $notNull: true },
         },
-        populate: ['company'], 
+        populate: ['company'],
       });
-  
-      return leads; 
+
+      return leads;
     } catch {
       return ctx.throw(500, 'Error fetching leads');
     }
   },
-  
 
   async login(ctx) {
     const { email, password } = ctx.request.body;
-  
+
     const user = await strapi.db.query('admin::user').findOne({ where: { email } });
-  
+
     if (!user) {
       return ctx.unauthorized('Invalid email or password');
     }
-  
+
     const isValid = await bcrypt.compare(password, user.password);
-  
+
     if (!isValid) {
       return ctx.unauthorized('Invalid email or password');
     }
-  
+
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-  
-    return ctx.send({
-      token,
-      user
-    });
+
+    return ctx.send({ token, user });
   },
-  
 
   async markFavorite(ctx) {
     const { id } = ctx.params;
@@ -109,12 +103,20 @@ module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
       populate: ['company'],
     });
 
+    await createLog({
+      action: 'Update Lead Favorite',
+      description: `Lead ID ${id} marked as favorite: ${isFavorite}`,
+      user: null,
+      entity: 'lead',
+      entityId: id,
+    });
+
     return updated;
   },
-  
+
   async analyzeCardAndSave(ctx) {
     const { files } = ctx.request;
-    const userId = ctx.params.userId; 
+    const userId = ctx.params.userId;
     if (!userId) return ctx.throw(400, 'User ID is required');
     if (!files?.scannedCard?.filepath) return ctx.throw(400, 'No scannedCard image uploaded');
 
@@ -132,6 +134,7 @@ module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
         name: companyData?.name || null,
         address: companyData?.address || null,
         website: companyData?.website || null,
+        publishedAt: new Date(),
       },
     });
 
@@ -148,10 +151,19 @@ module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
         phoneNumber: leadData?.phoneNumber || null,
         designation: leadData?.designation || null,
         scannedCard: leadData?.scannedCard || null,
-        users_permissions_user: user.id, 
-        company: company?.id || null, 
+        users_permissions_user: user.id,
+        company: company?.id || null,
+        publishedAt: new Date(),
       },
       populate: ['company', 'users_permissions_user'],
+    });
+
+    await createLog({
+      action: 'Create Lead',
+      description: `Lead created for user ID ${userId}`,
+      user: userId,
+      entity: 'lead',
+      entityId: savedEntry.id,
     });
 
     return savedEntry;
@@ -159,21 +171,20 @@ module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
 
   async getLeadsByUser(ctx) {
     const { userDocumentId } = ctx.params;
-  
+
     if (!userDocumentId) {
       return ctx.throw(400, 'User document ID is required');
     }
-  
+
     try {
       const leads = await strapi.db.query('api::lead.lead').findMany({
         where: {
-          users_permissions_user: {
-            id: userDocumentId,  
-          },
+          users_permissions_user: { id: userDocumentId },
+          publishedAt: { $notNull: true },
         },
-        populate: ['company'],  
+        populate: ['company'],
       });
-  
+
       return leads;
     } catch {
       return ctx.throw(500, 'Error fetching leads');
