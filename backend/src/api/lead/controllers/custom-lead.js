@@ -189,5 +189,46 @@ module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
     } catch {
       return ctx.throw(500, 'Error fetching leads');
     }
+  },
+
+  async deleteUserCard(ctx) {
+    try {
+      const user = ctx.state.user; 
+      const { id } = ctx.params;   
+
+      if (!user) {
+        return ctx.unauthorized('You must be logged in to delete a card.');
+      }
+
+      
+      const lead = await strapi.entityService.findOne('api::lead.lead', id, {
+        populate: ['createdBy', 'company'],
+      });
+
+      if (!lead) {
+        return ctx.notFound('Lead not found.');
+      }
+
+      
+      // if (lead.user?.id !== user.id) {
+      //   return ctx.unauthorized('You can only delete your own cards.');
+      // }
+
+      const companyId = lead.company?.id;
+
+      await strapi.entityService.delete('api::lead.lead', id);
+
+      
+      if (companyId) {
+        await strapi.entityService.delete('api::company.company', companyId);
+      }
+
+      return ctx.send({ message: 'Lead and associated Company deleted successfully.' });
+
+    } catch (error) {
+      console.error('Error deleting lead:', error);
+      return ctx.internalServerError('An error occurred while deleting the lead.');
+    }
   }
+
 }));
