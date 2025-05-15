@@ -19,21 +19,29 @@ async function extractTextFromImage(buffer) {
     .filter(block => block.BlockType === 'LINE')
     .map(block => block.Text)
     .join(' ');
+    
 
   return extractedText;
 }
 
 async function analyzeEntities(text) {
+ 
   const command = new DetectEntitiesCommand({
     Text: text,
     LanguageCode: 'en'
   });
 
-  const response = await comprehend.send(command);
-  if (response.$metadata.httpStatusCode !== 200) {
-    throw new Error('Error analyzing entities: ' + response.$metadata.httpStatusCode);
+  try {
+    const response = await comprehend.send(command);
+    if (response.$metadata.httpStatusCode !== 200) {
+      throw new Error('Error analyzing entities: ' + response.$metadata.httpStatusCode);
+    }
+    
+    return response.Entities;
+  } catch (error) {
+   
+    return []; 
   }
-  return response.Entities;
 }
 
 async function analyzeDocumentAndParse(buffer) {
