@@ -60,7 +60,7 @@ module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
           users_permissions_user: { id: userId },
           publishedAt: { $notNull: true },
         },
-        populate: ['company'],
+        populate: ['scannedCard','company'],
       });
 
       return leads;
@@ -117,56 +117,72 @@ module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
   async analyzeCardAndSave(ctx) {
     const { files } = ctx.request;
     const userId = ctx.params.userId;
+
     if (!userId) return ctx.throw(400, 'User ID is required');
     if (!files?.scannedCard?.filepath) return ctx.throw(400, 'No scannedCard image uploaded');
 
-    const filePath = files.scannedCard.filepath;
-    const fileBuffer = fs.readFileSync(filePath);
+    try {
+      const uploadedFiles = await strapi
+        .plugin('upload')
+        .service('upload')
+        .upload({
+          data: {},
+          files: files.scannedCard,
+        });
 
-    const rawText = await extractTextFromImage(fileBuffer);
-    const entities = await analyzeEntities(rawText);
-    const parsedData = parseTextData(entities, rawText);
+      const uploadedImage = uploadedFiles?.[0];
+      if (!uploadedImage) return ctx.throw(500, 'Image upload failed');
 
-    const { companyData, leadData } = parsedData;
+      const filePath = files.scannedCard.filepath;
+      const fileBuffer = fs.readFileSync(filePath);
 
-    const company = await strapi.entityService.create('api::company.company', {
-      data: {
-        name: companyData?.name || null,
-        address: companyData?.address || null,
-        website: companyData?.website || null,
-        publishedAt: new Date(),
-      },
-    });
+      const rawText = await extractTextFromImage(fileBuffer);
+      const entities = await analyzeEntities(rawText);
+      const parsedData = parseTextData(entities, rawText);
 
-    const user = await strapi.entityService.findOne('plugin::users-permissions.user', userId);
+      const { companyData, leadData } = parsedData;
 
-    if (!user) {
-      return ctx.throw(404, 'User not found');
+      const company = await strapi.entityService.create('api::company.company', {
+        data: {
+          name: companyData?.name || null,
+          address: companyData?.address || null,
+          website: companyData?.website || null,
+          scannedCard: uploadedImage,
+          publishedAt: new Date(),
+        },
+      });
+
+      const user = await strapi.entityService.findOne('plugin::users-permissions.user', userId);
+      if (!user) return ctx.throw(404, 'User not found');
+
+      const savedEntry = await strapi.entityService.create('api::lead.lead', {
+        data: {
+          name: leadData?.name || null,
+          email: leadData?.email || null,
+          phoneNumber: leadData?.phoneNumber || null,
+          designation: leadData?.designation || null,
+          scannedCard: uploadedImage.id,
+          users_permissions_user: user.id,
+          company: company?.id || null,
+          scannedCard: uploadedImage,
+          publishedAt: new Date(),
+        },
+        populate: ['company', 'users_permissions_user', 'scannedCard'],
+      });
+
+      await createLog({
+        action: 'Create Lead',
+        description: `Lead created for user ID ${userId}`,
+        user: userId,
+        entity: 'lead',
+        entityId: savedEntry.id,
+      });
+
+      return savedEntry;
+    } catch (err) {
+      console.error('Error in analyzeCardAndSave:', err);
+      return ctx.throw(500, 'Internal server error');
     }
-
-    const savedEntry = await strapi.entityService.create('api::lead.lead', {
-      data: {
-        name: leadData?.name || null,
-        email: leadData?.email || null,
-        phoneNumber: leadData?.phoneNumber || null,
-        designation: leadData?.designation || null,
-        scannedCard: leadData?.scannedCard || null,
-        users_permissions_user: user.id,
-        company: company?.id || null,
-        publishedAt: new Date(),
-      },
-      populate: ['company', 'users_permissions_user'],
-    });
-
-    await createLog({
-      action: 'Create Lead',
-      description: `Lead created for user ID ${userId}`,
-      user: userId,
-      entity: 'lead',
-      entityId: savedEntry.id,
-    });
-
-    return savedEntry;
   },
 
   async getLeadsByUser(ctx) {
@@ -189,5 +205,39 @@ module.exports = createCoreController('api::lead.lead', ({ strapi }) => ({
     } catch {
       return ctx.throw(500, 'Error fetching leads');
     }
+  },
+
+  async deleteUserCard(ctx) {
+    try {
+      const user = ctx.state.user;
+      const { id } = ctx.params;
+
+      if (!user) {
+        return ctx.unauthorized('You must be logged in to delete a card.');
+      }
+
+      const lead = await strapi.entityService.findOne('api::lead.lead', id, {
+        populate: ['createdBy', 'company'],
+      });
+
+      if (!lead) {
+        return ctx.notFound('Lead not found.');
+      }
+
+      const companyId = lead.company?.id;
+
+      await strapi.entityService.delete('api::lead.lead', id);
+
+      if (companyId) {
+        await strapi.entityService.delete('api::company.company', companyId);
+      }
+
+      return ctx.send({ message: 'Lead and associated Company deleted successfully.' });
+
+    } catch (error) {
+      console.error('Error deleting lead:', error);
+      return ctx.internalServerError('An error occurred while deleting the lead.');
+    }
   }
+
 }));

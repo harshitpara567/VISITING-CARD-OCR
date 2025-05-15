@@ -63,7 +63,8 @@
       "relation": "manyToOne",
       "target": "plugin::users-permissions.role",
       "inversedBy": "users",
-      "configurable": false
+      "configurable": false,
+      "private": false
     },
     "phoneNumber": {
       "type": "biginteger",

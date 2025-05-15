@@ -26,6 +26,16 @@ module.exports = {
       },
     },
 
+     {
+      method: 'DELETE',
+      path: '/leads/:id/delete',
+      handler: 'custom-lead.deleteUserCard',
+      config: {
+        auth: {}, 
+        policies: [],
+      },
+    },
+
     {
       method: 'POST',
       path: '/custom-login',
